@@ -1,0 +1,12 @@
+#time based greeting
+from datetime import datetime
+hour = datetime.now().hour
+name = input("Enter your name: ")
+if 5<=hour<12:
+    print("Good Morning", name+"!")
+elif 12<= hour<18:
+    print("Good Afternoon", name+"!")
+elif 18<= hour<22:
+    print("Good Evening", name+"!")
+else:
+    print("Good Night", name+"!")

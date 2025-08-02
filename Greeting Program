@@ -1,0 +1,9 @@
+print("Hello World!")
+name=input("What's your Name?")
+print("Hello",name)
+print("Welcome to the world of Python programming!")
+age = input("How old are you? ")
+print(f"Wow, {age} years old! Python is for all ages!")
+#Greeting program day-1
+
+

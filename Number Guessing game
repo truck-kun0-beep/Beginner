@@ -1,0 +1,33 @@
+import random
+
+def number_guessing_game():
+    # Set the range for the random number
+    low=1
+    high=100
+    #generate a random number between low and high
+    secret_number=random.randint(low,high)
+    print("Welcome to the Number Guessing Game!")
+    print(f"I'm thinking of a number between {low} and {high}. Can you guess it?")
+
+    #Initialize the number of attempts
+    attempts=0
+
+    while True:
+        try:
+            #Take input from a user
+            guess=int(input("Enter your guess: "))
+            attempts += 1 #Increse the attempt Counter
+
+            #Check if the guess is correct, too low or high
+            if guess < secret_number:
+                print("too low! Try again.")
+            elif guess > secret_number:
+                print("too high! Try again.")
+            else:
+                print(f"Congratulations! YOU've guessed the number {secret_number}")
+                break # Exit the loop if the guess is correct
+        except ValueError:
+            print("Please enter a valid number!")
+
+if __name__ == "__main__":
+    number_guessing_game()

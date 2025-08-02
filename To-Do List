@@ -1,0 +1,38 @@
+tasks = []  # Empty list to store tasks
+
+def add_task(task):
+    """Add a task to the list."""
+    tasks.append(task)
+    print(f"✅ Added: {task}")
+def view_tasks():
+    """View all tasks in the list."""
+
+def view_tasks():
+    for i, task in enumerate(tasks, 1):
+        print(f"{i}. {task}")
+def delete_task(index):
+    """Delete a task from the list by its index."""
+    if 0 < index <= len(tasks):
+        removed_task = tasks.pop(index - 1)
+        print(f"❌ Deleted: {removed_task}")
+    else:
+        print("❌ Invalid index. Please try again.")
+# Main program loop
+while True:
+    print("\n1. Add Task\n2. View Tasks\n3. Delete Task\n4. Exit")
+    choice = input("Choose an option(1-4): ")
+    if choice == "1":
+        task = input("Enter task:")
+        add_task(task)
+    elif choice =="2":
+        view_tasks()
+    elif choice == "3":
+        view_tasks()
+        task_num = int(input("Enter task number to delete: "))
+        delete_task(task_num)
+    elif choice == "4":
+        print("Exiting the program. Goodbye!")
+        break
+    else:
+        print("❌ Invalid choice. Please try again.")
+# The code is a simple task management program that allows users to add, view, and delete tasks.

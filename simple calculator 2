@@ -1,0 +1,22 @@
+def calculator():
+    try:
+        # Simple calculator program
+        num1 = float(input("Enter first number:"))  # converts input into float
+        num2 = float(input("Enter 2nd number:"))
+        operation = input("Choose operation (+, -, *, /): ")
+        if operation == "+":
+            print(f"Result: {num1 + num2}")
+        elif operation == "-":
+            print(f"Result: {num1 - num2}")
+        elif operation == "*":
+            print(f"Result: {num1 * num2}")
+        elif operation == "/":
+            print(f"Result: {num1 / num2}")
+        else:
+            print("Invalid operation!")
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+    except ZeroDivisionError:
+        print("Error: Division by zero is not allowed.")
+calculator()
+# The code is a simple calculator program that takes two numbers and an operation as input from the user.

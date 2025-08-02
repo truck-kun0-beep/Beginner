@@ -1,0 +1,4 @@
+#Name Length Fun Fact
+name = input("what's your name?")
+length = len(name)
+print("Hello", name, "! Your name has", length, "letters in it.")

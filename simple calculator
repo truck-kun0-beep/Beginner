@@ -1,0 +1,14 @@
+
+try:
+        # Simple calculator program
+        num1 = float(input("Enter first number:"))  # converts input into float
+        num2 = float(input("Enter 2nd number:"))
+        print("\nResults:")
+        print(f"{num1} + {num2} = {num1 + num2}")
+        print(f"{num1} - {num2} = {num1 - num2}")
+        print(f"{num1} * {num2} = {num1 * num2}")
+        print(f"{num1} / {num2} = {num1 / num2}")
+except ValueError:
+        print("Invalid input. Please enter a number.")
+except ZeroDivisionError:
+        print("Error: Division by zero is not allowed.")
