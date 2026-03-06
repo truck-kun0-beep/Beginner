@@ -53,6 +53,8 @@ int totalEvents = 0;
 PriorityQueue pq;               // pq is a structure for managing event priorities
 Resource* root = NULL;
 
+void freeParticipants(Event* e);
+
 /* ============================================================================================================================= */
 /* =================================================== RESOURCE BST FUNCTIONS =================================================== */
 
@@ -112,10 +114,20 @@ void inorderResources(Resource* root) {
     }
 }
 
+void freeResource(Resource* root){
+    if(root==NULL) return;
+
+    freeResource(root->left);
+    freeResource(root->right);
+
+    free(root);
+}
+
 /* ============================================================================================================================= */
 /* ========================================================= PRIORITY QUEUE FUNCTIONS ================================================== */
 
 //Used Array based Heap Functions to maximize efficiency. It's time complexity is lowest compared to other implementations. It is suggested.
+//Heap allows O(log n) insertion and removal while always keeping the highest priority event accessible at the root.
 
 void swap(Event** a, Event** b) {           //We can't change pointers without double pointer
     Event* temp = *a;
@@ -188,6 +200,14 @@ Event* searchEventByID(int id) {
     return NULL;
 }
 
+
+void printTime(int t){
+    int hour = t / 100;
+    int min = t % 100;
+
+    printf("%02d:%02d", hour, min);
+}
+
 int checkTimeConflict(int start, int end, int resourceID) {
     for (int i = 0; i < totalEvents; i++) {
         if (eventList[i].Cancelled == 0 && eventList[i].resourceID == resourceID) {
@@ -217,6 +237,7 @@ void addEvent() {
     printf("Enter Priority (1=High,2=Medium,3=Low): ");
     scanf("%d", &e->priority);
 
+
     printf("Enter Start Time (e.g., 1300): ");
     scanf("%d", &e->startTime);
 
@@ -226,14 +247,34 @@ void addEvent() {
     printf("Enter Resource ID: ");
     scanf("%d", &e->resourceID);
 
+    if(searchEventByID(e->eventID)!=NULL){
+    printf("Event ID already exists!\n");
+    return;
+    }
+
     if (searchResource(root, e->resourceID) == NULL) {
         printf("Resource does not exist!\n");
         return;
     }
 
+    if(e->priority <1 || e->priority >3){
+    printf("Invalid priority!\n");
+    return;
+    }
+
     if (checkTimeConflict(e->startTime, e->endTime, e->resourceID)) {
         printf("Time conflict detected! Event not added.\n");
         return;
+    }
+
+    if(e->startTime < 0 || e->startTime > 2359){
+    printf("Invalid Start Time!\n");
+    return;
+    }
+
+    if(e->startTime >= e->endTime){
+    printf("Invalid time range!\n");
+    return;
     }
 
     printf("Enter Maximum Participants: ");
@@ -250,14 +291,48 @@ void addEvent() {
     printf("Event Added & Scheduled Successfully!\n");
 }
 
+void searchEventMenu(){
+    int id;
+    printf("Enter Event ID: ");
+    scanf("%d",&id);
+
+    Event* e = searchEventByID(id);
+
+    if(e==NULL){
+        printf("Event not found!\n");
+        return;
+    }
+
+    printf("Event Found: %s | Priority:%d | Time:%d-%d\n",
+            e->name,e->priority,e->startTime,e->endTime);
+}
+
 void displayAllEvents() {
+
     printf("\n---------- Scheduled Events (By Priority) -----------\n");
-    for (int i = 0; i < pq.size; i++) {
-        Event* e = pq.events[i];
+
+    PriorityQueue temp = pq;   //copy the heap
+
+    Event* e;
+
+    while ((e = removeFromPQ(&temp)) != NULL) {
+
         if (!e->Cancelled) {
-            printf("ID:%d | %s | Priority:%d | Time:%d-%d | Resource:%d\n",
-                   e->eventID, e->name, e->priority,
-                   e->startTime, e->endTime, e->resourceID);
+
+            Resource* r = searchResource(root, e->resourceID);
+
+            printf("\n------ EVENT LIST ------\n");
+            printf("ID:%d | %s | Priority:%d | Time:",
+                   e->eventID, e->name, e->priority);
+
+            printTime(e->startTime);
+            printf(" - ");
+            printTime(e->endTime);
+
+            printf(" | Resource ID:%d ", e->resourceID);
+
+            printf(" | Resource:%s | Participants:%d/%d\n",
+                   r ? r->name : "Unknown", e->participantCount, e->maxParticipants);
         }
     }
 }
@@ -269,14 +344,18 @@ void cancelEvent(int id) {
         return;
     }
 
+    freeParticipants(e);
+
     e->Cancelled = 1;
     printf("Event Cancelled Successfully!\n");
 }
+
 
 /* ========================================================================================================================================================= */
 /* ============================================ PARTICIPANT FUNCTIONS ===================================================================================== */
 
 void registerParticipant(int eventID) {
+
     Event* e = searchEventByID(eventID);
 
     if (e == NULL) {
@@ -290,12 +369,26 @@ void registerParticipant(int eventID) {
     }
 
     Participant* newP = (Participant*)malloc(sizeof(Participant));
+    if (newP == NULL) {
+        printf("Memory allocation failed!\n");
+        return;
+    }
 
     printf("Enter Participant ID: ");
     scanf("%d", &newP->participantID);
 
     printf("Enter Participant Name: ");
     scanf(" %[^\n]", newP->name);
+
+    Participant* temp = e->participantHead;
+    while(temp != NULL){
+    if(temp->participantID == newP->participantID) {
+        printf("Participant ID already exists!\n");
+        free(newP);
+        return;
+    }
+    temp = temp->next;
+    }
 
     newP->next = e->participantHead;
     e->participantHead = newP;
@@ -323,7 +416,43 @@ void displayParticipants(int eventID) {
     }
 }
 
-/* ================================================================================================================================================================================================= */
+void freeParticipants(Event* e){
+    Participant* temp = e->participantHead;
+    while(temp != NULL){
+        Participant* next = temp->next;
+        free(temp);
+        temp = next;
+    }
+
+    e->participantHead = NULL;
+    e->participantCount = 0;
+}
+
+/* ================================================================================================================================================================ */
+/* SYSTEM SUMMARY */
+
+void systemSummary(){
+
+    int active=0;
+    int cancelled=0;
+    int totalParticipants = 0;
+
+    for(int i=0;i<totalEvents;i++){
+        if(eventList[i].Cancelled)
+            cancelled++;
+        else
+            active++;
+        totalParticipants += eventList[i].participantCount;
+    }
+
+    printf("\n===== SYSTEM SUMMARY =====\n");
+    printf("Total Events Created: %d\n", totalEvents);
+    printf("Active Events: %d\n", active);
+    printf("Cancelled Events: %d\n", cancelled);
+    printf("Events in Queue: %d\n", pq.size);
+    printf("Total Participants Registered: %d\n", totalParticipants);
+}
+
 /* =============================================== MAIN MENU ================================================================================================= */
 
 void menu() {
@@ -337,7 +466,8 @@ void menu() {
     printf("7. Display Resources\n");
     printf("8. Search Resource\n");
     printf("9. Process Event\n");
-    printf("10. Exit\n");
+    printf("10. System Summary\n");
+    printf("11. Exit\n");
     printf("Enter choice: ");
 }
 
@@ -384,8 +514,13 @@ int main() {
             scanf("%d", &id);
             printf("Enter Resource Name: ");
             scanf(" %[^\n]", name);
+            if(searchResource(root,id)!=NULL){
+            printf("Resource ID already exists!\n");
+            }
+            else{
             root = insertResource(root, id, name);
             printf("Resource Added!\n");
+            }
             break;
 
         case 7:
@@ -396,19 +531,32 @@ int main() {
             searchResourceMenu();
             break;
         case 9:
-                {Event* e = removeFromPQ(&pq);                
+            {
+                Event* e = removeFromPQ(&pq);
+            
+                while(e != NULL && e->Cancelled){
+                    e = removeFromPQ(&pq);
+                }
+            
                 if(e == NULL){
                     printf("No event to process!\n");
+                 }
+                   else{
+                    printf("\nProcessing Event:\n");
+                    printf("ID:%d | %s | Priority:%d\n", e->eventID, e->name, e->priority);
                 }
-                else{
-                        printf("\nProcessing Event:\n");
-                        printf("ID:%d | %s | Priority:%d\n",e->eventID,e->name,e->priority);
-                    }
-                }
-                break;
-        case 10:
+            }
+break;
+
+         case 10:
+            systemSummary();
+            break;
+        
+        case 11:
             printf("Exiting.....\n");
+            freeResource(root);
             exit(0);
+
 
         default:
             printf("Invalid Choice!\n");
